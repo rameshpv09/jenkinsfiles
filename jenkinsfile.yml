@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+    stages {
+        stage ('git') {
+            steps {
+                sh git clone https://github.com/devops-trainer/game-of-life.git
+            }
+        }
+        stage ("build") {
+            steps {
+                sh '''
+                cd game-of-life/
+                mvn compile
+                mvn package
+                '''
+            }
+        }
+        stage ('nexus') {
+            steps {
+                script {
+                    def mavenPom =readmavenPom file = 'pom.xml'
+                     nexusArtifactUploader artifacts: 
+                     [
+                         [
+                             artifactId: 'gameoflife',
+                              classifier: '', 
+                              file: 'gameoflife-web/target/gameoflife.war', 
+                              type: 'war'
+                              ]
+                            ], 
+                            credentialsId: '754f05d8-0c99-42ea-9046-c22ab5c68e19',
+                             groupId: 'com.wakaleo.gameoflife', 
+                             nexusUrl: 'localhost:8081', 
+                             nexusVersion: 'nexus2', 
+                             protocol: 'http', 
+                             repository: 'sample-test', 
+                             version: '1.0'
+                }
+               
+            }
+        }
+    }
+}
